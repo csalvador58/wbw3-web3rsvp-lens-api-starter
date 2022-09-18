@@ -3,18 +3,19 @@ import Layout from "../../components/Layout";
 import Head from "next/head";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { client, getProfileById } from "../../api";
+import { client, getProfileById, getPublicationsById } from "../../api";
 
 export default function Profile() {
 
     const [profile, setProfile] = useState();
+    const [pubs, setPubs] = useState([]);
     const router = useRouter();
     const { id } = router.query;
-    return (
-        <div>
-            ID: {id}
-        </div>
-    );
+    // return (
+    //     <div>
+    //         ID: {id}
+    //     </div>
+    // );
 
     useEffect(() => {
         if (id) {
@@ -27,6 +28,10 @@ export default function Profile() {
             const response = await client.query(getProfileById, { id }).toPromise();
             console.log("PROFILE:", response);
             setProfile(response.data.profile);
+
+            const publications = await client.query(getPublicationsById, { id }).toPromise();
+            console.log("PUBS", publications);
+            setPubs(publications.data.publications.items);
         } catch(error) {
             console.log("ERROR:", error);
         }
@@ -88,6 +93,17 @@ export default function Profile() {
                     {/* Add connect and follow buttons here */}
                   </div>
                   {/* Add publications here */}
+                  {pubs.length > 0 && (
+                    <div className="border-t-2 border-gray-100 my-8 py-8 flex flex-col space-y-8">
+                        {pubs.map((p, index) => (
+                        <div key={p.id}>
+                            <p className="font-bold">{p.__typename}</p>
+                            <p>{p.metadata.content}</p>
+                            <p>{p.metadata.name}</p>
+                        </div>
+                        ))}
+                    </div>
+                    )}
                 </div>
               </div>
             )}
